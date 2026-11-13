@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101820"><title>TACTIQ — League & Match Simulator</title>
+<style>
+:root{--bg:#0a1118;--panel:#14212b;--panel2:#1c2b36;--line:#30424e;--txt:#eef5f7;--muted:#9db0bb;--green:#68dda0;--gold:#f1ca70;--blue:#69aef5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:16px;background:#101a22;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.brand{font-weight:950;letter-spacing:3px;font-size:23px}.tag{font-size:11px;color:var(--muted)}
+nav{display:flex;gap:6px;overflow:auto;padding:10px;background:#0e1820;position:sticky;top:62px;z-index:9}
+nav button{white-space:nowrap;background:var(--panel2);color:var(--txt);border:1px solid var(--line);padding:9px 12px}
+nav button.active{background:var(--green);color:#082116;border-color:var(--green)}
+main{max-width:1100px;margin:auto;padding:12px;display:grid;gap:13px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+h2{font-size:17px;margin:0 0 12px}h3{font-size:14px;color:var(--green);margin:13px 0 8px}
+input,select,textarea{background:#0c171f;color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:10px;font:inherit;min-width:0;width:100%}
+textarea{min-height:66px;resize:vertical}
+button{background:var(--green);color:#082116;border:0;border-radius:9px;padding:10px 13px;font:inherit;font-weight:800;cursor:pointer}
+button.secondary{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}button.danger{background:#5b3033;color:#ffe5e5}
+button:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.small{font-size:12px;color:var(--muted)}.hidden{display:none!important}
+.tabscreen{display:none}.tabscreen.active{display:grid;gap:13px}
+.teamitem,.fixture,.saveditem{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;margin:7px 0}
+.teamitem{display:flex;align-items:center;gap:8px}.teamitem strong{flex:1}
+table{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap}th,td{padding:9px 7px;border-bottom:1px solid var(--line);text-align:center}th{color:var(--muted);font-weight:700;position:sticky;top:0;background:var(--panel)}
+td:first-child,th:first-child{text-align:left}tr.me{background:#1d3b32}
+.tablewrap{overflow:auto;max-height:460px;border:1px solid var(--line);border-radius:9px}
+.fixture{display:flex;align-items:center;justify-content:space-between;gap:8px}.fixture .teams{flex:1}.fixture b{font-variant-numeric:tabular-nums}.fixture button{padding:7px 9px}
+.badge{display:inline-block;padding:3px 7px;border-radius:20px;background:#294357;color:#cde5f7;font-size:11px}
+.score{font-size:28px;font-weight:900;text-align:center}.clock{text-align:center;color:var(--gold);font-weight:800;font-size:18px}
+.pitch{position:relative;background:linear-gradient(90deg,#17683f,#1d7548);border:3px solid #d5e8d8;border-radius:9px;aspect-ratio:1.55;overflow:hidden}
+.pitch:before{content:"";position:absolute;inset:0 50%;border-left:2px solid #d5e8d8}.pitch:after{content:"";position:absolute;width:20%;aspect-ratio:1;border:2px solid #d5e8d8;border-radius:50%;left:40%;top:50%;transform:translateY(-50%)}
+.boxline{position:absolute;top:22%;bottom:22%;width:13%;border:2px solid #d5e8d8}.boxline.left{left:-1px}.boxline.right{right:-1px}
+.player{position:absolute;width:25px;height:25px;border-radius:50%;display:grid;place-items:center;font-size:9px;font-weight:900;border:2px solid white;transform:translate(-50%,-50%);z-index:2}.home{background:#1768d2}.away{background:#d34c4c}
+.ball{position:absolute;width:12px;height:12px;background:white;border:2px solid #111;border-radius:50%;transform:translate(-50%,-50%);z-index:3}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.stat{background:var(--panel2);padding:8px;border-radius:9px;text-align:center}.stat b{display:block;font-size:17px}.stat span{font-size:10px;color:var(--muted)}
+.feed{max-height:180px;overflow:auto;display:flex;flex-direction:column-reverse;gap:6px}.event{background:var(--panel2);padding:8px;border-radius:8px;font-size:13px}
+.squadrow{display:grid;grid-template-columns:1fr 62px 68px;gap:5px;margin:5px 0}.squadrow input,.squadrow select{padding:7px}
+@media(max-width:650px){header{padding:12px}.tag{display:none}nav{top:54px}.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(2,1fr)}.pitch{aspect-ratio:1.15}.fixture{font-size:13px}.squadrow{grid-template-columns:1fr 58px 60px}}
+</style></head>
+<body>
+<header><div><div class="brand">TACTIQ</div><div class="tag">FOOTBALL LEAGUE & MATCH SIMULATOR</div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><span class="badge" id="saveStatus">Local save ready</span><span class="small" id="accountLabel">Not signed in</span><button class="secondary" id="authOpen" style="padding:7px 10px">Email login</button></div></header>
+<nav>
+<button class="active" data-tab="league">League</button><button data-tab="match">Matchday</button><button data-tab="teams">Teams & Squads</button><button data-tab="saves">Saved Careers</button>
+</nav>
+<main>
+<section class="panel" id="authPanel" style="display:none">
+ <div class="row"><h2 style="flex:2">TACTIQ account</h2><button class="secondary" id="authClose">Close</button></div>
+ <p class="small">Sign in to sync your leagues and match progress across devices. Your local browser save remains available too.</p>
+ <div id="authForms">
+  <div class="grid2"><div><label class="small">Email address</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"></div><div><label class="small">Password</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div></div>
+  <div class="row" style="margin-top:10px"><button id="signInBtn">Log in</button><button class="secondary" id="signUpBtn">Create account</button><button class="secondary" id="resetBtn">Reset password</button></div>
+ </div>
+ <div class="row" id="signedInActions" style="display:none"><button class="secondary" id="syncBtn">Sync now</button><button class="danger" id="signOutBtn">Log out</button></div>
+ <p class="small" id="authMessage" role="status" aria-live="polite"></p>
+</section>
+<section class="tabscreen active" id="league">
+ <div class="panel">
+  <h2>Create a league</h2>
+  <div class="grid2"><div><label class="small">League name</label><input id="leagueName" value="TACTIQ Premier League"></div><div><label class="small">Season label</label><input id="seasonName" value="2026/27"></div></div>
+  <h3>Add clubs</h3><div class="row"><input id="newTeam" placeholder="Enter a club name"><button id="addTeam">Add team</button></div>
+  <div id="teamChips"></div>
+  <div class="row" style="margin-top:10px"><button id="generate">Generate league schedule</button><button class="secondary" id="newLeague">Clear / new league</button></div>
+  <p class="small">The schedule uses a double round-robin format: every club plays every other club home and away, one fixture per team per matchweek. Odd-sized leagues receive one bye per round. Add at least 2 teams.</p>
+ </div>
+ <div class="panel"><div class="row"><h2 style="flex:2">League table</h2><span class="badge" id="tableSeason">No league yet</span></div>
+ <div class="tablewrap"><table><thead><tr><th>#</th><th>Club</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody id="tableBody"><tr><td colspan="10" class="small">Create a league to see the standings.</td></tr></tbody></table></div>
+ <p class="small">Scoring: win = 3 points, draw = 1 point each, loss = 0. Table sorted by points, goal difference, then goals scored.</p>
+ </div>
+ <div class="panel"><h2>Season progress</h2><div id="progress" class="small">No schedule generated.</div><div class="row"><button class="secondary" id="saveNow">Save league now</button><button class="secondary" id="exportSave">Export career backup</button></div></div>
+</section>
+<section class="tabscreen" id="match">
+ <div class="panel"><div class="row"><div><h2 id="matchweekTitle">Matchday</h2><div class="small" id="matchweekInfo">Generate a league schedule first.</div></div><div class="row" style="flex:0 0 auto"><button class="secondary" id="prevWeek">←</button><button class="secondary" id="nextWeek">→</button></div></div>
+ <div id="fixtures"></div></div>
+ <div class="panel"><h2 id="liveTitle">Live match simulator</h2><div class="row"><div class="clock" id="clock">00:00</div><div class="score" id="score">0 — 0</div><div class="clock" id="matchState">READY</div></div>
+ <div class="grid2"><div><label class="small">Home tactics</label><textarea id="homeTactic">Press high, build with short passes and use the wide areas.</textarea></div><div><label class="small">Away tactics</label><textarea id="awayTactic">Stay compact in a low block and counter quickly.</textarea></div></div>
+ <div class="pitch" id="pitch" style="margin-top:10px"><div class="boxline left"></div><div class="boxline right"></div><div class="ball" id="ball" style="left:50%;top:50%"></div></div>
+ <div class="row" style="margin-top:10px"><button id="play">▶ Start</button><button class="secondary" id="step">+ 1 minute</button><button class="secondary" id="pause">Pause</button><select id="speed"><option value="1100">1× speed</option><option value="550">2× speed</option><option value="275">4× speed</option></select></div>
+ <div class="stats" id="stats" style="margin-top:10px"></div><h3>Commentary</h3><div class="feed" id="feed"><div class="event">Choose a fixture from the matchday to begin.</div></div>
+ <div class="row" style="margin-top:10px"><button id="saveMatch" class="secondary">Save match state</button><button id="completeFixture" disabled>Record result in league</button></div>
+ <p class="small">This is a lightweight probability-based match engine. Results are simulated, not predictions. A fixture only updates the table after you record its completed result.</p>
+ </div>
+</section>
+<section class="tabscreen" id="teams">
+ <div class="panel"><h2>Team & squad editor</h2><p class="small">Choose a club and edit its starting XI. Player names, positions and overall ratings are saved with your career.</p>
+ <div class="row"><select id="editTeam"></select><button class="secondary" id="saveSquad">Save squad</button></div><div id="squadEditor"></div>
+ </div>
+</section>
+<section class="tabscreen" id="saves">
+ <div class="panel"><h2>Saved careers on this device</h2><p class="small">Careers are automatically saved in this browser on this device. Use Export to create a backup file you can move to another device, then Import it here.</p>
+ <div id="savedList"></div><div class="row" style="margin-top:10px"><button class="secondary" id="importBtn">Import career backup</button><input class="hidden" type="file" id="importFile" accept=".json,application/json"></div>
+ </div>
+ <div class="panel"><h2>How saving works</h2><p class="small">Auto-save stores your league, fixtures, table, squads and current match in browser storage. Clearing browser data or using a different browser/device can remove or hide local saves. Export a JSON backup regularly for portability.</p></div>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id), POS=['GK','RB','CB','CB','LB','DM','CM','CM','RW','ST','LW'];
+const BASE=[[8,50],[22,17],[20,39],[20,61],[22,83],[39,35],[42,50],[39,65],[66,18],[76,50],[66,82]];
+let career={id:null,name:'TACTIQ Premier League',season:'2026/27',clubs:[],rounds:[],week:0,fixtures:[],currentFixture:null,match:null};
+let timer=null,selectedClub=null;
+function uid(){return Math.random().toString(36).slice(2,10)}
+function squadFor(club){return POS.map((p,i)=>({name:club+' '+p+' '+(i+1),pos:p,ovr:68+Math.floor(Math.random()*13)}))}
+function blankClub(name){return {id:uid(),name,squad:squadFor(name)}}
+function autoSave(){try{localStorage.setItem('tactiq_active_career',JSON.stringify(career));$('saveStatus').textContent='Saved ✓';refreshSaved()}catch(e){$('saveStatus').textContent='Save unavailable'}}
+function persistNamed(name){let arr=JSON.parse(localStorage.getItem('tactiq_careers')||'[]');let item={id:career.id||uid(),name:name||career.name,updated:new Date().toISOString(),data:career};career.id=item.id;arr=arr.filter(x=>x.id!==item.id);arr.unshift(item);localStorage.setItem('tactiq_careers',JSON.stringify(arr.slice(0,30)));autoSave();refreshSaved()}
+function restoreActive(){try{let x=JSON.parse(localStorage.getItem('tactiq_active_career'));if(x&&x.clubs)career=x}catch(e){}}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function showTab(name){document.querySelectorAll('.tabscreen').forEach(x=>x.classList.toggle('active',x.id===name));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));if(name==='teams')renderTeamEditor();if(name==='saves')refreshSaved();if(name==='match')renderFixtures()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+function renderClubs(){$('teamChips').innerHTML=career.clubs.map(c=>`<div class="teamitem"><strong>${esc(c.name)}</strong><button class="secondary" data-edit="${c.id}">Squad</button><button class="danger" data-del="${c.id}">×</button></div>`).join('')||'<p class="small">No clubs added yet.</p>';document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(career.rounds.length&&!confirm('Removing a club requires regenerating the schedule. Continue?'))return;career.clubs=career.clubs.filter(c=>c.id!==b.dataset.del);career.rounds=[];career.fixtures=[];renderAll()});document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{selectedClub=b.dataset.edit;showTab('teams');$('editTeam').value=selectedClub;renderTeamEditor()})}
+function addClub(){let n=$('newTeam').value.trim();if(!n)return;if(career.clubs.some(c=>c.name.toLowerCase()===n.toLowerCase())){alert('That club is already in this league.');return}career.clubs.push(blankClub(n));$('newTeam').value='';renderAll()}
+$('addTeam').onclick=addClub;$('newTeam').addEventListener('keydown',e=>{if(e.key==='Enter')addClub()});
+function generateSchedule(){
+ if(career.clubs.length<2){alert('Add at least two clubs first.');return}
+ if(career.fixtures.some(f=>f.played)&&!confirm('This will replace the current schedule and clear recorded results. Continue?'))return;
+ let ids=career.clubs.map(c=>c.id),arr=[...ids];if(arr.length%2)arr.push(null);
+ const n=arr.length,half=n-1,first=[];
+ for(let r=0;r<half;r++){let games=[];for(let i=0;i<n/2;i++){let a=arr[i],b=arr[n-1-i];if(a&&b){if(r%2===0)games.push({home:a,away:b});else games.push({home:b,away:a})}}first.push(games);arr=[arr[0],arr[n-1],...arr.slice(1,n-1)]}
+ const rounds=[...first,...first.map(g=>g.map(x=>({home:x.away,away:x.home})))];
+ career.rounds=rounds.map((games,i)=>games.map(g=>({id:uid(),week:i+1,home:g.home,away:g.away,played:false,score:null})));
+ career.fixtures=career.rounds.flat();career.week=0;career.currentFixture=null;career.match=null;career.name=$('leagueName').value.trim()||'My League';career.season=$('seasonName').value.trim()||'Season 1';
+ renderAll();persistNamed();
+}
+$('generate').onclick=generateSchedule;
+$('newLeague').onclick=()=>{if(!confirm('Start a new league? Export or save your current career first.'))return;stopTimer();career={id:null,name:'My League',season:'Season 1',clubs:[],rounds:[],week:0,fixtures:[],currentFixture:null,match:null};$('leagueName').value=career.name;$('seasonName').value=career.season;renderAll();autoSave()};
+function club(id){return career.clubs.find(c=>c.id===id)}
+function tableRows(){let rows=career.clubs.map(c=>({id:c.id,name:c.name,P:0,W:0,D:0,L:0,GF:0,GA:0,GD:0,Pts:0}));let map=Object.fromEntries(rows.map(r=>[r.id,r]));career.fixtures.filter(f=>f.played&&f.score).forEach(f=>{let h=map[f.home],a=map[f.away],x=f.score[0],y=f.score[1];if(!h||!a)return;h.P++;a.P++;h.GF+=x;h.GA+=y;a.GF+=y;a.GA+=x;if(x>y){h.W++;a.L++;h.Pts+=3}else if(x<y){a.W++;h.L++;a.Pts+=3}else{h.D++;a.D++;h.Pts++;a.Pts++}});rows.forEach(r=>r.GD=r.GF-r.GA);return rows.sort((a,b)=>b.Pts-a.Pts||b.GD-a.GD||b.GF-a.GF||a.name.localeCompare(b.name))}
+function renderTable(){let rows=tableRows();$('tableBody').innerHTML=rows.length?rows.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.name)}</td><td>${r.P}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${r.GF}</td><td>${r.GA}</td><td>${r.GD>0?'+':''}${r.GD}</td><td><b>${r.Pts}</b></td></tr>`).join(''):'<tr><td colspan="10" class="small">Create a league to see the standings.</td></tr>'}
+function renderProgress(){let total=career.fixtures.length,played=career.fixtures.filter(f=>f.played).length;let totalWeeks=career.rounds.length;$('progress').textContent=total?`${career.name} · ${career.season} · ${played}/${total} fixtures played · ${totalWeeks} matchweeks · ${Math.round(played/total*100)}% complete`:'No schedule generated.';$('tableSeason').textContent=career.season||'No league yet'}
+function renderFixtures(){let week=career.rounds[career.week]||[];$('matchweekTitle').textContent=career.rounds.length?`Matchweek ${career.week+1} of ${career.rounds.length}`:'Matchday';$('matchweekInfo').textContent=career.rounds.length?`${week.length} fixtures scheduled · ${week.filter(f=>f.played).length} completed`:'Generate a league schedule first.';$('fixtures').innerHTML=week.map(f=>{let h=club(f.home),a=club(f.away);return `<div class="fixture"><div class="teams"><b>${esc(h?.name||'Club')} ${f.played?f.score[0]:' '}</b> <span class="small">vs</span> <b>${f.played?f.score[1]:' '}${esc(a?.name||'Club')}</b><div class="small">${f.played?'<span class="badge">Played</span>':'<span class="badge">Scheduled</span>'}</div></div><button class="${f.played?'secondary':''}" data-fixture="${f.id}">${f.played?'View':'Play'}</button></div>`}).join('')||'<p class="small">No fixtures in this matchweek.</p>';document.querySelectorAll('[data-fixture]').forEach(b=>b.onclick=()=>selectFixture(b.dataset.fixture));$('prevWeek').disabled=career.week<=0;$('nextWeek').disabled=career.week>=career.rounds.length-1}
+$('prevWeek').onclick=()=>{career.week=Math.max(0,career.week-1);renderFixtures();autoSave()};$('nextWeek').onclick=()=>{career.week=Math.min(career.rounds.length-1,career.week+1);renderFixtures();autoSave()};
+function selectFixture(id){let f=career.fixtures.find(x=>x.id===id);if(!f)return;if(f.played){if(!confirm('This fixture already has a recorded result. Start a replay? The table result will not change unless you record a replacement.'))return}
+ stopTimer();career.currentFixture=id;career.match=newMatch();$('liveTitle').textContent=`${club(f.home).name} vs ${club(f.away).name}`;renderMatch();showTab('match');autoSave()}
+function newMatch(){return {minute:0,goals:[0,0],poss:[50,50],shots:[0,0],sot:[0,0],passes:[0,0],tackles:[0,0],corners:[0,0],cards:[0,0],events:[],done:false,ballSide:Math.random()<.5?0:1}}
+function current(){return career.match}
+function activeFixture(){return career.fixtures.find(f=>f.id===career.currentFixture)}
+function names(){let f=activeFixture();return f?[club(f.home),club(f.away)]:[null,null]}
+function addEvent(t,msg){current().events.unshift({t,msg});$('feed').innerHTML=current().events.slice(0,50).map(e=>`<div class="event"><b>${e.t}</b> ${esc(e.msg)}</div>`).join('')}
+function tact(i){let v=$(i===0?'homeTactic':'awayTactic').value.toLowerCase();return {press:/press|gegenpress|high intensity/.test(v),wide:/wide|flank|overlap/.test(v),counter:/counter|transition/.test(v),direct:/direct|long ball/.test(v),low:/low block|deep block|compact/.test(v)}}
+function strength(i){let f=activeFixture(),c=club(i===0?f.home:f.away);return c.squad.reduce((a,p)=>a+p.ovr,0)/11}
+function matchTick(){let s=current();if(!s||s.done)return;s.minute++;let m=s.minute,acts=2+Math.floor(Math.random()*3),t=[tact(0),tact(1)];s.poss[0]=Math.max(25,Math.min(75,s.poss[0]+(Math.random()-.5)*4+(t[0].press?1.4:0)-(t[1].press?1.4:0)+(strength(0)-strength(1))*.08));s.poss[1]=100-s.poss[0];
+ for(let k=0;k<acts;k++){let side=s.ballSide,opp=1-side,pass=.76+(t[side].direct?-.08:0)+(strength(side)-strength(opp))*.002;if(Math.random()<pass){s.passes[side]++;if(Math.random()<.11+(t[opp].press?.09:0)){s.ballSide=opp;s.tackles[opp]++}}else{s.ballSide=opp;s.tackles[opp]++}
+ if(Math.random()<.17+(t[side].counter?.07:0)){s.shots[side]++;let q=.25+(strength(side)-strength(opp))*.008+(t[side].wide?.025:0)+(t[side].direct?.02:0)-(t[opp].low?.06:0);if(Math.random()<Math.max(.18,Math.min(.72,.34+q))){s.sot[side]++;if(Math.random()<Math.max(.08,Math.min(.48,.22+q*.55))){s.goals[side]++;let [h,a]=names();let scorer=club(side===0?activeFixture().home:activeFixture().away).squad[Math.floor(Math.random()*11)].name;addEvent(m+`′`,`GOAL! ${scorer} scores for ${side===0?h.name:a.name}!`);s.ballSide=opp}else addEvent(m+`′`,`A shot on target — saved by the goalkeeper.`)}else addEvent(m+`′`,`The effort goes wide.`)}
+ if(Math.random()<.035){s.corners[side]++;addEvent(m+`′`,`Corner to ${names()[side].name}.`)}if(Math.random()<.009){s.cards[side]++;addEvent(m+`′`,`Yellow card for ${names()[side].name}.`)}}
+ if(m===45)addEvent('45′','Half-time.');if(m>=90){s.done=true;stopTimer();addEvent('90′','Full-time. Record this result to update the league table.')}
+ renderMatch();autoSave()}
+function renderMatch(){let s=current();if(!s){$('clock').textContent='00:00';$('score').textContent='0 — 0';$('matchState').textContent='READY';$('completeFixture').disabled=true;return}
+ $('clock').textContent=s.minute<90?String(s.minute).padStart(2,'0')+':00':s.minute+':00';$('score').textContent=`${s.goals[0]} — ${s.goals[1]}`;$('matchState').textContent=s.done?'FULL TIME':s.minute<45?'1ST HALF':s.minute<90?'2ND HALF':'STOPPAGE';
+ const stats=[['Possession',`${Math.round(s.poss[0])}% / ${Math.round(s.poss[1])}%`],['Shots',`${s.shots[0]} / ${s.shots[1]}`],['On target',`${s.sot[0]} / ${s.sot[1]}`],['Passes',`${s.passes[0]} / ${s.passes[1]}`],['Tackles',`${s.tackles[0]} / ${s.tackles[1]}`],['Corners',`${s.corners[0]} / ${s.corners[1]}`],['Yellow cards',`${s.cards[0]} / ${s.cards[1]}`],['Goals',`${s.goals[0]} / ${s.goals[1]}`]];$('stats').innerHTML=stats.map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]} · H / A</span></div>`).join('');
+ $('feed').innerHTML=s.events.slice(0,50).map(e=>`<div class="event"><b>${e.t}</b> ${esc(e.msg)}</div>`).join('')||'<div class="event">Kick-off ready.</div>';$('play').disabled=s.done;$('step').disabled=s.done;$('completeFixture').disabled=!s.done||!activeFixture()}
+function stopTimer(){if(timer){clearInterval(timer);timer=null}}
+$('play').onclick=()=>{if(!current()||current().done)return;if(!timer)timer=setInterval(matchTick,+$('speed').value)};$('pause').onclick=stopTimer;$('step').onclick=()=>{stopTimer();matchTick()};$('speed').onchange=()=>{if(timer){stopTimer();$('play').click()}};
+$('completeFixture').onclick=()=>{let f=activeFixture(),s=current();if(!f||!s?.done)return;if(f.played&&!confirm('Replace the previously recorded result for this fixture?'))return;f.played=true;f.score=[...s.goals];career.week=f.week-1;addEvent('FT',`Result recorded: ${f.score[0]}–${f.score[1]}.`);autoSave();renderAll();alert('Result added to the league table.');};
+$('saveMatch').onclick=()=>{autoSave();alert('Current match and career saved on this device.')};
+function drawPitch(){let s=current(),f=activeFixture();$('pitch').querySelectorAll('.player').forEach(x=>x.remove());if(!f)return;[club(f.home),club(f.away)].forEach((c,side)=>c.squad.forEach((p,i)=>{let [x,y]=BASE[i];if(side)x=100-x;x+=(s?.ballSide===side?(side?-3:3):(side?2:-2));let e=document.createElement('div');e.className='player '+(side?'away':'home');e.style.left=x+'%';e.style.top=y+'%';e.textContent=p.name.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();e.title=p.name;$('pitch').appendChild(e)}));$('ball').style.left=(s?.ballSide===0?58:42)+'%';$('ball').style.top='50%'}
+function renderTeamEditor(){let sel=$('editTeam');sel.innerHTML=career.clubs.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');if(selectedClub&&club(selectedClub))sel.value=selectedClub;selectedClub=sel.value||null;let c=club(selectedClub);$('squadEditor').innerHTML=c?c.squad.map((p,i)=>`<div class="squadrow"><input data-name="${i}" value="${esc(p.name)}"><select data-pos="${i}">${['GK','RB','LB','CB','RWB','LWB','DM','CM','AM','RW','LW','ST'].map(x=>`<option ${x===p.pos?'selected':''}>${x}</option>`).join('')}</select><input data-ovr="${i}" type="number" min="1" max="99" value="${p.ovr}"></div>`).join(''):'<p class="small">Add clubs to edit their squads.</p>'}
+$('editTeam').onchange=()=>{selectedClub=$('editTeam').value;renderTeamEditor()};
+$('saveSquad').onclick=()=>{let c=club($('editTeam').value);if(!c)return;c.squad.forEach((p,i)=>{p.name=$(`[data-name="${i}"]`).value.trim()||p.name;p.pos=$(`[data-pos="${i}"]`).value;p.ovr=Math.max(1,Math.min(99,+$(`[data-ovr="${i}"]`).value||1))});autoSave();alert('Squad saved.')};
+function renderSaved(){let arr=JSON.parse(localStorage.getItem('tactiq_careers')||'[]');$('savedList').innerHTML=arr.map(x=>`<div class="saveditem"><div class="row"><div><b>${esc(x.name)}</b><div class="small">${esc(x.data.season||'')} · ${x.data.clubs.length} clubs · saved ${new Date(x.updated).toLocaleString()}</div></div><button data-load="${x.id}">Load</button><button class="danger" data-remove="${x.id}">Delete</button></div></div>`).join('')||'<p class="small">No named career saves yet. Use Save league now to create one.</p>';document.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>{let x=arr.find(y=>y.id===b.dataset.load);if(x){career=JSON.parse(JSON.stringify(x.data));career.id=x.id;renderAll();showTab('league');autoSave()}});document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{if(!confirm('Delete this saved career?'))return;localStorage.setItem('tactiq_careers',JSON.stringify(arr.filter(x=>x.id!==b.dataset.remove)));renderSaved()})}
+function refreshSaved(){if($('savedList'))renderSaved()}
+$('saveNow').onclick=()=>persistNamed($('leagueName').value.trim()||career.name);
+$('exportSave').onclick=exportBackup;
+function exportBackup(){let blob=new Blob([JSON.stringify(career,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(career.name||'tactiq-career').replace(/[^a-z0-9-_]/gi,'_')+'.json';a.click();URL.revokeObjectURL(url)}
+$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{let file=e.target.files[0];if(!file)return;try{let x=JSON.parse(await file.text());if(!x.clubs||!x.fixtures)throw Error();career=x;renderAll();persistNamed(career.name);showTab('league');alert('Career imported.')}catch(err){alert('That file is not a valid TACTIQ career backup.')}e.target.value=''};
+function renderAll(){ $('leagueName').value=career.name||'';$('seasonName').value=career.season||'';renderClubs();renderTable();renderProgress();renderFixtures();renderTeamEditor();renderMatch();drawPitch();autoSave()}
+restoreActive();if(!career.clubs.length){career.clubs=[blankClub('Northbridge FC'),blankClub('Riverside United'),blankClub('Eastport City'),blankClub('Kingsbridge Athletic'),blankClub('Westvale Town'),blankClub('Harbour Rovers')];career.name='TACTIQ Premier League';career.season='2026/27'}
+renderAll();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(()=>{
+ const SUPABASE_URL='https://xlkmsktnecqqmbokqssh.supabase.co';
+ const SUPABASE_PUBLISHABLE_KEY='sb_publishable_9ggXbc5ApjtSMJ35yep9TA_6ZaAsZvF';
+ const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+ const byId=id=>document.getElementById(id); let currentUser=null, saveTimer=null, syncing=false;
+ const panel=byId('authPanel'), msg=byId('authMessage');
+ function say(t){msg.textContent=t;}
+ function setAuthUI(user){currentUser=user||null;byId('accountLabel').textContent=user?user.email:'Not signed in';byId('authOpen').textContent=user?'Account':'Email login';byId('authForms').style.display=user?'none':'block';byId('signedInActions').style.display=user?'flex':'none';}
+ byId('authOpen').onclick=()=>{panel.style.display=panel.style.display==='none'?'block':'none';};
+ byId('authClose').onclick=()=>panel.style.display='none';
+ byId('signUpBtn').onclick=async()=>{let email=byId('authEmail').value.trim(),password=byId('authPassword').value;if(!email||password.length<8)return say('Enter a valid email and a password of at least 8 characters.');say('Creating account…');let {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin}});if(error)return say(error.message);say(data.session?'Account created and signed in.':'Account created. Check your email to confirm it, then log in.');};
+ byId('signInBtn').onclick=async()=>{let email=byId('authEmail').value.trim(),password=byId('authPassword').value;if(!email||!password)return say('Enter your email and password.');say('Signing in…');let {error}=await client.auth.signInWithPassword({email,password});if(error)return say(error.message);say('Signed in. Syncing your career…');};
+ byId('resetBtn').onclick=async()=>{let email=byId('authEmail').value.trim();if(!email)return say('Enter your email address first.');let {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin});say(error?error.message:'Password reset email sent. Check your inbox.');};
+ byId('signOutBtn').onclick=async()=>{await client.auth.signOut();say('Signed out. Your local save remains on this device.');};
+ async function cloudSave(){if(!currentUser||syncing)return;syncing=true;try{const id=career.id||'active-career';const payload={user_id:currentUser.id,career_id:id,name:career.name||'My TACTIQ career',updated_at:new Date().toISOString(),data:career};const {error}=await client.from('tactiq_careers').upsert(payload,{onConflict:'user_id,career_id'});if(error)throw error;byId('saveStatus').textContent='Cloud saved ✓';}catch(e){byId('saveStatus').textContent='Local save · cloud sync issue';console.error(e);}finally{syncing=false;}}
+ async function cloudLoad(){if(!currentUser)return;try{const {data,error}=await client.from('tactiq_careers').select('*').order('updated_at',{ascending:false});if(error)throw error;if(data&&data.length){let items=data.map(r=>({id:r.career_id,name:r.name,updated:r.updated_at,data:r.data}));localStorage.setItem('tactiq_careers',JSON.stringify(items));let active=items[0].data;if(active&&active.clubs){career=active;localStorage.setItem('tactiq_active_career',JSON.stringify(career));renderAll();}if(typeof refreshSaved==='function')refreshSaved();say('Cloud careers loaded. Your latest career is ready.');}else{await cloudSave();say('Account connected. Your current career has been backed up to the cloud.');}}catch(e){say('Could not load cloud saves: '+e.message);console.error(e);}}
+ // Keep the original instant local save, then debounce cloud sync.
+ const originalAutoSave=autoSave;
+ autoSave=function(){originalAutoSave();if(currentUser){clearTimeout(saveTimer);saveTimer=setTimeout(cloudSave,900);}};
+ byId('syncBtn').onclick=async()=>{say('Syncing…');await cloudSave();await cloudLoad();};
+ client.auth.onAuthStateChange(async(_event,session)=>{setAuthUI(session?.user||null);if(session?.user){await cloudLoad();}});
+ client.auth.getSession().then(({data})=>{setAuthUI(data.session?.user||null);if(data.session?.user)cloudLoad();});
+})();
+</script>
+
+</body></html>
